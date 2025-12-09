@@ -1,0 +1,27 @@
+{
+    "manifest_version": 3,
+    "name": "UI Extractor – POC 01 Element Selector",
+    "version": "0.0.1",
+    "description": "Basispoc: Browserextension with Selector for UI-Elements",
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "UI Extractor"
+    },
+    "permissions": [
+        "tabs"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "src/content/contentScript.js"
+            ],
+            "css": [
+                "src/content/content.css"
+            ],
+            "run_at": "document_idle"
+        }
+    ]
+}
