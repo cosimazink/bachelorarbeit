@@ -6,20 +6,43 @@
   <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <h1>UI Extractor</h1>
-  <p>Starte den Auswahlmodus, um ein UI-Element auf der aktuellen Seite zu selektieren.</p>
+  <div class="popup-root">
+    <header class="popup-header">
+      <div class="header-icon">🧩</div>
+      <div class="header-text">
+        <h1>UI Extractor</h1>
+        <p class="header-subtitle">
+          Wähle ein Element auf der aktuellen Seite aus, um seine Struktur zu analysieren.
+        </p>
+      </div>
+    </header>
 
-  <button id="start-selection">Element auswählen</button>
+    <main class="popup-main">
+      <section class="action-section">
+        <button id="start-selection">
+          Element auswählen
+        </button>
+        <p class="action-hint">
+          Klicke auf „Element auswählen“, fahre über die Website und klicke auf ein Element.
+        </p>
+      </section>
 
-  <small>
-    1. Klicke auf „Element auswählen“<br />
-    2. Fahre über die Seite und klicke auf ein Element<br />
-    3. Das Payload wird unten angezeigt.
-  </small>
+      <section class="preview-section">
+        <div class="section-heading">
+          <span class="section-title">Letzte Auswahl</span>
+          <span class="section-badge">Payload</span>
+        </div>
+        <div id="payload-container">
+          <pre id="payload-preview">{ noch kein Element ausgewählt }</pre>
+        </div>
+      </section>
+    </main>
 
-  <h2>Letzte Auswahl</h2>
-  <div id="payload-container">
-    <pre id="payload-preview">{ noch kein Element ausgewählt }</pre>
+    <footer class="popup-footer">
+      <small>
+        Hinweis: Dies ist ein POC. Aktuell werden HTML-Struktur und Basis-Styles des ausgewählten Elements angezeigt.
+      </small>
+    </footer>
   </div>
 
   <script src="popup.js"></script>

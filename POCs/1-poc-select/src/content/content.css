@@ -4,6 +4,6 @@
 }
 
 .selected-outline {
-  outline: 2px solid green !important;
+  outline: 2px solid #E84C78 !important;
   cursor: default !important;
 }
