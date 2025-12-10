@@ -3,6 +3,8 @@
     let currentHoverElement = null;
     let selectedElement = null;
 
+    const INTERNAL_CLASSES = ["hover-outline", "selected-outline"];
+
     console.log("Content Script geladen (POC 01).");
 
     function clearHover() {
@@ -69,14 +71,29 @@
             border: computed.border
         };
 
+        // Alle Klassen sammeln
+        const allClasses = element.className
+            ? element.className.split(/\s+/).filter(Boolean)
+            : [];
+
+        // Interne Hilfsklassen rausfiltern
+        const classes = allClasses.filter(
+            (cls) => !INTERNAL_CLASSES.includes(cls)
+        );
+
+        // outerHTML ebenfalls von Hilfsklassen bereinigen:
+        const clone = element.cloneNode(true);
+        INTERNAL_CLASSES.forEach((cls) => clone.classList.remove(cls));
+        const wrapper = document.createElement("div");
+        wrapper.appendChild(clone);
+        const cleanOuterHTML = wrapper.innerHTML;
+
         return {
             tagName: element.tagName,
             id: element.id || null,
-            classes: element.className
-                ? element.className.split(/\s+/).filter(Boolean)
-                : [],
+            classes,
             innerText: element.innerText?.trim() || null,
-            outerHTML: element.outerHTML,
+            outerHTML: cleanOuterHTML,
             basicStyles,
             parent: element.parentElement
                 ? {
@@ -90,6 +107,7 @@
                 : null
         };
     }
+
 
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message?.type === "START_SELECTION") {
