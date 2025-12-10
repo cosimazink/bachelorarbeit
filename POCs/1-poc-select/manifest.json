@@ -7,20 +7,12 @@
         "default_popup": "popup.html",
         "default_title": "UI Extractor"
     },
-    "permissions": [
-        "tabs"
-    ],
+    "permissions": ["tabs", "storage"],
     "content_scripts": [
         {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "src/content/contentScript.js"
-            ],
-            "css": [
-                "src/content/content.css"
-            ],
+            "matches": ["<all_urls>"],
+            "js": ["src/content/contentScript.js"],
+            "css": ["src/content/content.css"],
             "run_at": "document_idle"
         }
     ]

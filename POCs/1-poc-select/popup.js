@@ -1,8 +1,18 @@
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("start-selection");
+  const preview = document.getElementById("payload-preview");
+
+  // Beim Öffnen: letzte Auswahl laden
+  chrome.storage.local.get("lastSelection", (result) => {
+    if (result.lastSelection) {
+      const formatted = JSON.stringify(result.lastSelection, null, 2);
+      preview.textContent = formatted;
+    } else {
+      preview.textContent = "{ noch kein Element ausgewählt }";
+    }
+  });
 
   btn.addEventListener("click", () => {
-    // Aktiven Tab holen
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       const tab = tabs[0];
       if (!tab?.id) {
@@ -10,10 +20,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Nachricht an das Content Script schicken
       chrome.tabs.sendMessage(tab.id, { type: "START_SELECTION" }, () => {
-        // Optional: Feedback im Popup
-        window.close(); // Popup schließen, damit man die Seite sieht
+        preview.textContent =
+          "{ Auswahlmodus aktiv. Klicke auf der Seite auf ein Element ... }";
       });
     });
   });
