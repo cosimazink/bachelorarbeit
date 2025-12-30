@@ -8,7 +8,8 @@
         "default_title": "UI Extractor"
     },
     "permissions": [
-        "tabs"
+        "tabs",
+        "storage"
     ],
     "content_scripts": [
         {
