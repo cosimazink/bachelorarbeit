@@ -7,6 +7,7 @@
 
     console.log("Content Script geladen (POC 01).");
 
+    // Entfernt den Hover-Zustand vom aktuell gehighlighteten Element
     function clearHover() {
         if (currentHoverElement) {
             currentHoverElement.classList.remove("hover-outline");
@@ -14,6 +15,7 @@
         }
     }
 
+    // Entfernt den Auswahl-Zustand vom zuletzt ausgewählten Element
     function clearSelected() {
         if (selectedElement) {
             selectedElement.classList.remove("selected-outline");
@@ -21,6 +23,7 @@
         }
     }
 
+    // Hebt das Element unter dem Mauszeiger hervor
     function handleMouseOver(event) {
         if (!selectionMode) return;
 
@@ -32,6 +35,7 @@
         currentHoverElement.classList.add("hover-outline");
     }
 
+    // Selektiert das angeklickte Element und erstellt dessen Payload
     function handleClick(event) {
         if (!selectionMode) return;
 
@@ -56,6 +60,7 @@
 
     }
 
+    // Erstellt ein strukturiertes Payload-Objekt für das ausgewählte Element (HTML, Styles, Kontext)
     function buildElementPayload(element) {
         const computed = window.getComputedStyle(element);
 
@@ -71,17 +76,17 @@
             border: computed.border
         };
 
-        // Alle Klassen sammeln
+        // Erfasst alle CSS-Klassen des Elements
         const allClasses = element.className
             ? element.className.split(/\s+/).filter(Boolean)
             : [];
 
-        // Interne Hilfsklassen rausfiltern
+        // Entfernt interne Hilfsklassen aus der Liste
         const classes = allClasses.filter(
             (cls) => !INTERNAL_CLASSES.includes(cls)
         );
 
-        // outerHTML ebenfalls von Hilfsklassen bereinigen:
+        // Bereinigt das HTML des Elements von internen Klassen
         const clone = element.cloneNode(true);
         INTERNAL_CLASSES.forEach((cls) => clone.classList.remove(cls));
         const wrapper = document.createElement("div");
@@ -108,7 +113,7 @@
         };
     }
 
-
+    // Aktiviert den Auswahlmodus nach Anforderung vom Popup
     chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message?.type === "START_SELECTION") {
             selectionMode = true;

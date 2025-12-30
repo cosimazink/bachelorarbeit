@@ -1,9 +1,9 @@
 .hover-outline {
-  outline: 2px solid orange !important;
-  cursor: crosshair !important;
+    outline: 2px solid orange !important;
+    cursor: crosshair !important;
 }
 
 .selected-outline {
-  outline: 2px solid #E84C78 !important;
-  cursor: default !important;
+    outline: 2px solid #E84C78 !important;
+    cursor: default !important;
 }
