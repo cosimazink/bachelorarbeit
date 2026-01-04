@@ -59,8 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Optional: live updates, wenn neues Payload gespeichert wurde (simple polling light)
-  // Wenn du das nicht willst, löschen.
+  // live updates, wenn neues Payload gespeichert wurde
   let lastSerialized = null;
   setInterval(() => {
     chrome.storage.local.get("lastSelection", (result) => {
