@@ -3,7 +3,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const preview = document.getElementById("payload-preview");
   const generateBtn = document.getElementById("generate");
   const presetEl = document.getElementById("promptPreset");
-  const extraEl = document.getElementById("promptExtra");
   const statusEl = document.getElementById("status");
   const outEl = document.getElementById("llm-output");
   const copyBtn = document.getElementById("copy");
@@ -34,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Prompt aus Preset + optionalen Zusatzhinweisen bauen
-  function buildPrompt(preset, extra) {
+  function buildPrompt(preset) {
     const base = {
       vanilla_webcomponent: `
       Erstelle eine Webkomponente in Vanilla JavaScript (eine Datei).
@@ -51,7 +50,7 @@ document.addEventListener("DOMContentLoaded", () => {
       `
     };
 
-    return (base[preset] || base.vanilla_webcomponent) + (extra ? `\nZusatzhinweise:\n${extra}\n` : "");
+    return base[preset] || base.vanilla_webcomponent;
   }
 
   // Beim Öffnen: letzte Auswahl laden
@@ -127,10 +126,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const { lastSelection } = await chrome.storage.local.get("lastSelection");
       if (!lastSelection) {
-        throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen (POC 1).");
+        throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen (POC 2).");
       }
 
-      const prompt = buildPrompt(presetEl.value, extraEl.value.trim());
+      const prompt = buildPrompt(presetEl.value);
 
       const res = await fetch("http://localhost:8787/api/generate", {
         method: "POST",

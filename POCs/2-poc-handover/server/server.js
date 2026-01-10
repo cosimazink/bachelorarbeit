@@ -62,7 +62,7 @@ app.post("/api/generate", async (req, res) => {
                     }
                 ],
 
-                // ✅ Strict Structured Output: garantiert { code: string }
+                // Strict Structured Output: garantiert { code: string }
                 text: {
                     format: {
                         type: "json_schema",
@@ -96,7 +96,7 @@ app.post("/api/generate", async (req, res) => {
             return res.json({ code: "/* empty model response */\n" });
         }
 
-        // ✅ Popup bekommt NUR den Code-String (keinen Erklärtext)
+        // Popup bekommt NUR den Code-String (keinen Erklärtext)
         return res.json({ code });
     } catch (e) {
         // Fehler sichtbar machen (Popup zeigt dann API Error)
