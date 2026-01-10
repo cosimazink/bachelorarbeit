@@ -44,7 +44,7 @@
             cleaned.outline = "none";
         }
 
-        // Optional: falls du jemals cursor: crosshair o.ä. übernimmst
+        // Cursor „crosshair“ auf default setzen
         if (String(cleaned.cursor || "").toLowerCase() === "crosshair") {
             cleaned.cursor = "default";
         }
@@ -71,50 +71,69 @@
         return attrs;
     }
 
-    // Ein „Hint“-Selector, nicht perfekt, aber hilfreich (nicht 100% eindeutig garantiert)
+    // Hint“-Selector
     function buildSelectorHint(el) {
-        try {
-            if (el.id) return `#${CSS.escape(el.id)}`;
+        console.group("[SelectorHint] Build");
 
-            const parts = [];
-            let node = el;
-            let depth = 0;
+        console.log("Target element:", el);
+        console.log("Tag:", el.tagName);
+        console.log("ID:", el.id || "(none)");
+        console.log("Classes:", el.className || "(none)");
 
-            while (node && node.nodeType === 1 && depth < 4) {
-                const tag = node.tagName.toLowerCase();
-                let part = tag;
+        // Case 1: ID vorhanden → Best Case
+        if (el.id) {
+            const selector = `#${el.id}`;
+            console.log("✔ Using ID selector:", selector);
+            console.groupEnd();
+            return selector;
+        }
 
-                const classList = Array.from(node.classList || [])
-                    .filter((c) => c && !INTERNAL_CLASSES.includes(c))
-                    .slice(0, 2);
+        const parts = [];
+        let current = el;
+        let depth = 0;
 
-                if (classList.length) {
-                    part += "." + classList.map((c) => CSS.escape(c)).join(".");
-                }
+        while (current && current.nodeType === 1 && depth < 4) {
+            let part = current.tagName.toLowerCase();
 
-                // nth-of-type als grober Stabilisator
-                const parent = node.parentElement;
-                if (parent) {
-                    const siblings = Array.from(parent.children).filter(
-                        (c) => c.tagName === node.tagName
-                    );
-                    if (siblings.length > 1) {
-                        const index = siblings.indexOf(node) + 1;
-                        part += `:nth-of-type(${index})`;
-                    }
-                }
+            const classes = current.className
+                ? current.className
+                    .split(/\s+/)
+                    .filter(Boolean)
+                    .filter(cls => !INTERNAL_CLASSES.includes(cls))
+                    .slice(0, 2)
+                : [];
 
-                parts.unshift(part);
-                node = parent;
-                depth++;
+            if (classes.length) {
+                part += "." + classes.join(".");
             }
 
-            return parts.join(" > ");
-        } catch {
-            return null;
+            const siblings = current.parentElement
+                ? Array.from(current.parentElement.children).filter(
+                    sib => sib.tagName === current.tagName
+                )
+                : [];
+
+            if (siblings.length > 1) {
+                const index = siblings.indexOf(current) + 1;
+                part += `:nth-of-type(${index})`;
+                console.log(`↳ nth-of-type added: ${index}`);
+            }
+
+            parts.unshift(part);
+            console.log(`Depth ${depth}:`, part);
+
+            current = current.parentElement;
+            depth++;
         }
+
+        const selector = parts.join(" > ");
+        console.log("Final selectorHint:", selector);
+        console.groupEnd();
+
+        return selector;
     }
 
+    // Erlaubte Styles für Snapshot auswählen
     function pickComputedStyles(computed) {
         // Erweiterter Style-Snapshot (bewusst kuratiert, nicht ALLES)
         return {
@@ -200,7 +219,7 @@
     }
 
 
-    // Fokus-Snapshot als Annäherung an :focus (falls möglich)
+    // Fokus-Snapshot als Annäherung an :focus 
     function snapshotFocusStyles(el) {
         try {
             const previouslyFocused = document.activeElement;
@@ -326,6 +345,11 @@
         chrome.storage.local.set({ lastSelection: payload }, () => {
             console.log("Payload gespeichert.");
         });
+
+        const selectorHint = buildSelectorHint(selectedElement);
+
+        console.log("[Payload] selectorHint:", selectorHint);
+
 
         selectionMode = false;
     }

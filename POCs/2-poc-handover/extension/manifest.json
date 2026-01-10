@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "UI Extractor – POC 02 LLM Handover",
+    "version": "0.0.1",
+    "description": "Basispoc: Browserextension with Selector for UI-Elements",
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "UI Extractor"
+    },
+    "permissions": [
+        "tabs",
+        "storage"
+    ],
+    "host_permissions": [
+        "http://localhost:8787/*"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "src/content/contentScript.js"
+            ],
+            "css": [
+                "src/content/content.css"
+            ],
+            "run_at": "document_idle",
+            "all_frames": true
+        }
+    ]
+}
