@@ -42,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
       Nutze die gelieferten Daten (outerHTML, computed styles, hover/focus snapshots, attributes).
       Baue eine selbstständige Komponente, ohne externe Libraries.
       Enthalten sein müssen: HTML-Template + CSS (scoped) + JS (Custom Element).
-      Hover: Element leicht hervorheben + weißer Schatten (wenn im Original vorhanden).
       Gib NUR den finalen Code zurück, als eine komplette Datei (z.B. index.html oder component.js).
       `,
       snippet_html_css: `
