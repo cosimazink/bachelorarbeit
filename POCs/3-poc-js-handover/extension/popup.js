@@ -58,17 +58,53 @@ document.addEventListener("DOMContentLoaded", () => {
   function buildPrompt(preset, extra) {
     const base = {
       vanilla_webcomponent: `
-      Erstelle eine Webkomponente in Vanilla JavaScript (eine Datei).
-      Ziel: visuell so nah wie möglich am Originalelement.
-      Nutze die gelieferten Daten (outerHTML, computed styles, hover/focus snapshots, attributes).
-      Baue eine selbstständige Komponente, ohne externe Libraries.
-      Enthalten sein müssen: HTML-Template + CSS (scoped) + JS (Custom Element).
-      Gib NUR den finalen Code zurück, als eine komplette Datei (z.B. index.html oder component.js).
+      TASK:
+      Create a single-file Web Component using Vanilla JavaScript.
+
+      GOAL:
+      Reconstruct the selected UI element as visually close as possible to the original.
+
+      CONTEXT:
+      You do NOT have access to the original JavaScript logic.
+      You must infer visual structure and interaction behavior solely from the provided data:
+      - outerHTML
+      - computed styles
+      - hover and focus style snapshots
+      - attributes and basic text content
+
+      INSTRUCTIONS:
+      - Build a fully self-contained component (no external libraries, no frameworks).
+      - Reconstruct layout, styling, and simple interactions (e.g. hover/focus effects) by inference.
+      - Do NOT attempt to replicate business logic or network behavior.
+
+      REQUIRED OUTPUT:
+      - One complete file (e.g. index.html or component.js)
+      - Must include:
+        - HTML template
+        - Scoped CSS
+        - JavaScript
       `,
       snippet_html_css: `
-      Erstelle ein minimal mögliches HTML+CSS Snippet, das das Element so nah wie möglich nachbildet.
-      Nutze die gelieferten Styles, aber halte den Output kompakt.
-      Gib NUR Code zurück (keine Erklärungen).
+      TASK:
+      Create a minimal HTML + CSS snippet that visually replicates the selected element.
+
+      GOAL:
+      Achieve maximum visual similarity with minimal code.
+
+      CONTEXT:
+      No JavaScript logic is available.
+      Reconstruct the element using only:
+      - outerHTML
+      - computed styles
+      - hover/focus style snapshots
+
+      INSTRUCTIONS:
+      - Focus on structure, spacing, typography, and visual states.
+      - Keep the output as compact as possible.
+      - Do NOT include JavaScript.
+
+      OUTPUT RULES:
+      - Return ONLY raw HTML and CSS.
       `
     };
 
@@ -186,7 +222,8 @@ document.addEventListener("DOMContentLoaded", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt,
+          prompt: buildPrompt(presetEl.value, ""),
+          extra: extraEl.value.trim(),
           payload: lastSelection
         })
       });
