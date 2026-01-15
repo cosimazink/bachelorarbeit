@@ -20,6 +20,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (reason) setStatus(reason);
   }
 
+  function clearExtra(reason = "") {
+    extraEl.value = "";
+    chrome.storage.local.remove(["lastPromptExtra"]);
+    if (reason) setStatus(reason);
+  }
+
+  function saveExtra() {
+    chrome.storage.local.set({ lastPromptExtra: extraEl.value || "" });
+  }
+
   function setButtonState(isOn) {
     btn.dataset.mode = isOn ? "on" : "off";
     btn.textContent = isOn ? "Select Mode: ON (click to stop)" : "Select Mode: OFF (click to start)";
@@ -83,6 +93,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Beim Öffnen: Zusatzhinweis + Preset laden
+  chrome.storage.local.get(["lastPromptExtra", "lastPromptPreset"], (result) => {
+    if (typeof result.lastPromptExtra === "string") {
+      extraEl.value = result.lastPromptExtra;
+    }
+    if (typeof result.lastPromptPreset === "string") {
+      presetEl.value = result.lastPromptPreset;
+    }
+  });
+
   // Beim Öffnen: aktuellen State vom Content Script abfragen
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
@@ -121,8 +141,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const turnedOn = !isOn; // weil nextType = START_SELECTION wenn isOn=false
         if (turnedOn) {
-          // Select Mode wurde gerade aktiviert -> Output leeren
           clearOutput("Select Mode aktiv – Output zurückgesetzt.");
+          clearExtra("Select Mode aktiv – Zusatzhinweis zurückgesetzt.");
         }
 
         preview.textContent = isOn
@@ -193,5 +213,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = outEl.textContent || "";
     await navigator.clipboard.writeText(text);
     setStatus("Copied to clipboard");
+  });
+
+  extraEl.addEventListener("input", () => {
+    saveExtra();
   });
 });
