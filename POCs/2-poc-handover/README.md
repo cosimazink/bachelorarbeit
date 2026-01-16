@@ -22,7 +22,7 @@ Basierend auf der DOM-Auswahl aus POC 1 werden HTML-, CSS- und Kontextinformatio
 - Fehleranzeige mit Feedback im UI
 - Validierung der Modellantwortstruktur (strict schema enforcement)
 
-### Verwendete Technologien
+### Verwendete Technologien, Mechanismen, Konzeptentscheidungen
 - GPT-5.2 (OpenAI API mit Structured Output)
 - Lokaler Proxy-Server mit Express (Node.js)
 - JSON-basiertes Messaging zwischen Frontend und API
