@@ -21,7 +21,7 @@ Nutzer sollen per Browserextension ein beliebiges UI-Element auf einer beliebige
 - Timeout oder Reset-Funktion bei fehlerhafter Auswahl
 - Automatische Auswahl von Elternkomponente bei tief verschachtelten DOMs
 
-### Verwendete Technologien
+### Verwendete Technologien, Mechanismen, Konzeptentscheidungen
 - Chrome Extension (Manifest V3)
 - Content Scripts zur Interaktion mit dem DOM der besuchten Webseite
 - DOM- und CSSOM-APIs (`getComputedStyle`, `cloneNode`)

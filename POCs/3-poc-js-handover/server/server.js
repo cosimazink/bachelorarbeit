@@ -73,7 +73,7 @@ app.post("/api/generate", async (req, res) => {
 
                         Output:
                         - Return ONLY valid JSON that matches the provided schema.
-                        - No explanations, no markdown, no comments.
+                        - No explanations, no markdown.
                         - Keep output minimal.
                         `
                     },
