@@ -9,22 +9,22 @@ Im Unterschied zu einer Tab-basierten Screenshot-Erfassung wird die Bildquelle h
 
 ### Funktionsumfang (aktuelle Umsetzung)
 1. **Screenshot auswählen (Upload)**
-   - Nutzer wählen im Popup eine lokale Bilddatei aus (accept: `image/*`).
+   - Nutzer wählen im Popup eine lokale Bilddatei aus.
    - Die Datei wird im Extension-Kontext als Data URL gelesen.
-   - Optional: Downscaling/Kompression, um die Datenmenge zu reduzieren (z. B. JPEG, begrenzte Maximalbreite/-höhe).
+   - Optional: Downscaling/Kompression, um die Datenmenge zu reduzieren.
 
 2. **Screenshot als Referenz an das LLM übergeben**
    - Beim Klick auf „Generate Code“ wird neben dem strukturierten Payload zusätzlich die Bildreferenz über den Proxy an das LLM übermittelt.
    - Das Bild dient ausschließlich als **visuelle Referenz** für Styling/Shape/Spacing – nicht als Quelle für Textextraktion.
 
-3. **Screenshot-Preview im Extension-UI (optional)**
-   - Das hochgeladene Bild kann im Popup als Vorschau angezeigt werden.
+3. **Screenshot-Preview im Extension-UI**
+   - Das hochgeladene Bild wird im Popup als Vorschau angezeigt.
    - Ein „Remove“-Button ermöglicht das Entfernen der Bildreferenz.
 
 ### Exit-Kriterien
 - Upload-Funktion im Extension-UI integriert (Datei auswählen)
-- Screenshot wird im Extension-Kontext verarbeitet (mindestens: Data URL; optional: Kompression/Downscaling)
-- Screenshot kann im Popup als Vorschau angezeigt und entfernt werden (optional)
+- Screenshot wird im Extension-Kontext verarbeitet (Data URL, Kompression/Downscaling)
+- Screenshot kann im Popup als Vorschau angezeigt und entfernt werden
 - Screenshot wird persistiert (z. B. `chrome.storage.local`) oder zumindest im Request mitgesendet
 - LLM erhält neben dem strukturierten Payload eine zusätzliche visuelle Referenz und kann diese für die Rekonstruktion nutzen
 
@@ -36,7 +36,7 @@ Im Unterschied zu einer Tab-basierten Screenshot-Erfassung wird die Bildquelle h
 
 ### Fallbacks
 - Übermittlung nur des strukturierten Payloads, falls keine Bilddatei vorhanden ist
-- Reduktion der Bildgröße durch Downscaling/Kompression (z. B. Zielbreite/-höhe und JPEG-Qualität)
+- Reduktion der Bildgröße durch Downscaling/Kompression
 - Entfernen/Reset der Bildreferenz im UI, falls Upload fehlschlägt
 - Hinweis im UI, wenn Bilddaten zu groß sind oder nicht verarbeitet werden können
 
@@ -44,4 +44,12 @@ Im Unterschied zu einer Tab-basierten Screenshot-Erfassung wird die Bildquelle h
 - Erweiterung des Prompts um die Information, dass eine visuelle Referenz vorliegt (hochgeladener Screenshot)
 - Anweisung: Screenshot nur zur visuellen Annäherung verwenden (Form, Abstände, Farben, Schatten, Bildausschnitt)
 - Klare Priorität: Struktur (HTML/CSS) primär, Bildreferenz sekundär zur Validierung/Feintuning
-- Keine OCR-Anforderung: Screenshot dient nicht der Textextraktion, sondern nur de
+- Keine OCR-Anforderung: Screenshot dient nicht der Textextraktion, sondern nur dem visuellen Abgleich
+
+### Verwendete Technologien, Mechanismen, Konzeptentscheidungen
+- File Upload im Extension-UI
+- FileReader API zum Lesen der Bilddatei als Data URL
+- Optional: Canvas API für Downscaling/Kompression (z. B. `toDataURL("image/jpeg", quality)`)
+- Persistenz der Bildreferenz (optional) über `chrome.storage.local`
+- Proxy-Weiterleitung: Bildreferenz wird zusätzlich zum Payload an den lokalen Server übergeben
+- Konzeptentscheidung: Nutzer stellen die visuelle Referenz explizit bereit

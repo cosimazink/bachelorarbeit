@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Downscale + JPEG compress to keep payload small
+  // Kompremierung des Screenshots
   async function downscaleDataUrl(dataUrl, { maxW = 768, maxH = 768, quality = 0.75 } = {}) {
     const img = await loadImage(dataUrl);
     const w = img.naturalWidth;
@@ -46,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const ctx = canvas.getContext("2d");
     ctx.drawImage(img, 0, 0, nw, nh);
 
-    // JPEG is smaller than PNG in most cases
     return canvas.toDataURL("image/jpeg", quality);
   }
 
