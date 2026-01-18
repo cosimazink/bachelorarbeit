@@ -46,9 +46,22 @@
 
                 <label class="field-label" for="promptPreset">Prompt Vorlage</label>
                 <select id="promptPreset" class="field-input">
-                    <option value="vanilla_webcomponent">Webkomponente (VanillaJS, 1 Datei)</option>
-                    <option value="snippet_html_css">Snippet (HTML+CSS minimal)</option>
+                    <option value="vanilla_webcomponent">Webkomponente</option>
+                    <option value="snippet_html_css">Snippet (HTML+CSS)</option>
                 </select>
+
+                <label class="field-label" for="screenshotUpload">Screenshot hochladen (optional)</label>
+                <input id="screenshotUpload" class="field-input" type="file" accept="image/*" />
+
+                <div class="row" style="justify-content: space-between;">
+                    <small class="action-hint" style="margin:0;">
+                        Empfohlen: PNG/JPG, wird automatisch verkleinert.
+                    </small>
+                    <button id="clearUpload" class="ghost-btn" type="button">Remove</button>
+                </div>
+
+                <img id="uploadedPreview" alt="Uploaded screenshot preview"
+                    style="display:none; width:100%; border-radius:8px; margin-top:8px;" />
 
                 <label class="field-label" for="promptExtra">Zusatzhinweise (optional)</label>
                 <textarea id="promptExtra" class="field-input" rows="4"

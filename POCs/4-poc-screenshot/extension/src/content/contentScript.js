@@ -5,7 +5,7 @@
 
     const INTERNAL_CLASSES = ["hover-outline", "selected-outline"];
 
-    console.log("Content Script geladen (POC 03).");
+    console.log("Content Script geladen (POC 04).");
 
     function clearHover() {
         if (currentHoverElement) {

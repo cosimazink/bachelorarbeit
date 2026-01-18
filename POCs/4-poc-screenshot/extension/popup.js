@@ -7,6 +7,69 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusEl = document.getElementById("status");
   const outEl = document.getElementById("llm-output");
   const copyBtn = document.getElementById("copy");
+  const uploadInput = document.getElementById("screenshotUpload");
+  const clearUploadBtn = document.getElementById("clearUpload");
+  const uploadedPreview = document.getElementById("uploadedPreview");
+
+  function readFileAsDataURL(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("File read failed"));
+      reader.onload = () => resolve(String(reader.result));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function loadImage(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Image decode failed"));
+      img.src = dataUrl;
+    });
+  }
+
+  // Downscale + JPEG compress to keep payload small
+  async function downscaleDataUrl(dataUrl, { maxW = 768, maxH = 768, quality = 0.75 } = {}) {
+    const img = await loadImage(dataUrl);
+    const w = img.naturalWidth;
+    const h = img.naturalHeight;
+
+    const scale = Math.min(1, maxW / w, maxH / h);
+    const nw = Math.max(1, Math.round(w * scale));
+    const nh = Math.max(1, Math.round(h * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = nw;
+    canvas.height = nh;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0, nw, nh);
+
+    // JPEG is smaller than PNG in most cases
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  async function setUploadedScreenshot(dataUrlOrNull) {
+    if (!dataUrlOrNull) {
+      await chrome.storage.local.remove(["uploadedScreenshot"]);
+      uploadedPreview.style.display = "none";
+      uploadedPreview.src = "";
+      uploadInput.value = "";
+      return;
+    }
+
+    await chrome.storage.local.set({ uploadedScreenshot: dataUrlOrNull });
+    uploadedPreview.src = dataUrlOrNull;
+    uploadedPreview.style.display = "block";
+  }
+
+  chrome.storage.local.get("uploadedScreenshot", (res) => {
+    if (res.uploadedScreenshot) {
+      uploadedPreview.src = res.uploadedScreenshot;
+      uploadedPreview.style.display = "block";
+    }
+  });
 
   function setOutput(code) {
     outEl.textContent = code || "{ noch kein Output }";
@@ -200,6 +263,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (hadPrevious) {
           clearOutput("Neue Auswahl erkannt – Output zurückgesetzt.");
         }
+        hadPrevious = true;
       }
     });
   }, 800);
@@ -213,10 +277,11 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const { lastSelection } = await chrome.storage.local.get("lastSelection");
       if (!lastSelection) {
-        throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen (POC 3).");
+        throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen (POC 04).");
       }
 
       const prompt = buildPrompt(presetEl.value, extraEl.value.trim());
+      const { uploadedScreenshot } = await chrome.storage.local.get("uploadedScreenshot");
 
       const res = await fetch("http://localhost:8787/api/generate", {
         method: "POST",
@@ -224,7 +289,8 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           prompt: buildPrompt(presetEl.value, ""),
           extra: extraEl.value.trim(),
-          payload: lastSelection
+          payload: lastSelection,
+          imageDataUrl: uploadedScreenshot || null
         })
       });
 
@@ -254,5 +320,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
   extraEl.addEventListener("input", () => {
     saveExtra();
+  });
+
+  uploadInput.addEventListener("change", async () => {
+    clearStatus();
+    try {
+      const file = uploadInput.files?.[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        throw new Error("Bitte eine Bilddatei auswählen.");
+      }
+
+      const raw = await readFileAsDataURL(file);
+      const optimized = await downscaleDataUrl(raw, { maxW: 768, maxH: 768, quality: 0.75 });
+
+      await setUploadedScreenshot(optimized);
+      setStatus("Screenshot hochgeladen (verkleinert).");
+    } catch (e) {
+      setStatus(e?.message || "Upload fehlgeschlagen", "error");
+      await setUploadedScreenshot(null);
+    }
+  });
+
+  clearUploadBtn.addEventListener("click", async () => {
+    await setUploadedScreenshot(null);
+    setStatus("Upload entfernt.");
   });
 });

@@ -1,48 +1,47 @@
 # Proof of Concepts
 
-## 4. Screenshot-Erfassung des ausgewählten UI-Elements
+## 4. Visuelle Referenz via Screenshot-Upload (Datei auswählen)
 
 ### Beschreibung
-Ziel dieses PoCs ist die Erweiterung der Extension um eine Screenshot-Funktion, um neben strukturierter DOM- und Style-Extraktion auch eine visuelle Referenz des ausgewählten UI-Elements bereitzustellen. Damit kann ein LLM die visuelle Erscheinung zuverlässiger rekonstruieren, insbesondere bei komplexen Layouts, Grafiken oder schwer aus Styles ableitbaren Effekten. <br>
+Ziel dieses PoCs ist die Erweiterung der Extension um eine zusätzliche visuelle Referenz in Form eines vom Nutzer bereitgestellten Screenshots. Neben strukturierter DOM- und Style-Extraktion kann damit ein LLM die visuelle Erscheinung zuverlässiger rekonstruieren, insbesondere bei komplexen Layouts, Bildern, Overlays oder Effekten, die sich nicht sauber aus CSS ableiten lassen.
 
-Es werden zwei Varianten erprobt:
-1. Manuelle Screenshot-Erfassung
-Nutzer starten die Screenshot-Erfassung über das Extension-UI. Anschließend wird ein Screenshot des Tabs aufgenommen und der Nutzer kann (falls nötig) den relevanten Bereich auswählen oder bestätigen.
+Im Unterschied zu einer Tab-basierten Screenshot-Erfassung wird die Bildquelle hier explizit durch den Nutzer gewählt: Über das Extension-UI kann eine lokale Bilddatei (z. B. ein Screenshot) ausgewählt und als Referenz an den Proxy bzw. an das LLM mitgegeben werden. Optional kann das Bild im Popup als Vorschau angezeigt und wieder entfernt werden.
 
-2. Automatische Ausschnitt-Erfassung (präferiert)
-Nach der Elementauswahl wird der sichtbare Tab automatisch gescreenshottet und der relevante Ausschnitt anhand des boundingClientRect des selektierten Elements berechnet. Der Screenshot wird anschließend als Cropped Image (Elementausschnitt) als Teil des Payloads gespeichert bzw. an das LLM übergeben.
-Die Screenshot-Daten sollen vorzugsweise als komprimiertes Bild (z. B. PNG oder JPEG) bereitgestellt werden. Optional kann zusätzlich eine verkleinerte Vorschau im Extension-UI angezeigt werden.
+### Funktionsumfang (aktuelle Umsetzung)
+1. **Screenshot auswählen (Upload)**
+   - Nutzer wählen im Popup eine lokale Bilddatei aus (accept: `image/*`).
+   - Die Datei wird im Extension-Kontext als Data URL gelesen.
+   - Optional: Downscaling/Kompression, um die Datenmenge zu reduzieren (z. B. JPEG, begrenzte Maximalbreite/-höhe).
+
+2. **Screenshot als Referenz an das LLM übergeben**
+   - Beim Klick auf „Generate Code“ wird neben dem strukturierten Payload zusätzlich die Bildreferenz über den Proxy an das LLM übermittelt.
+   - Das Bild dient ausschließlich als **visuelle Referenz** für Styling/Shape/Spacing – nicht als Quelle für Textextraktion.
+
+3. **Screenshot-Preview im Extension-UI (optional)**
+   - Das hochgeladene Bild kann im Popup als Vorschau angezeigt werden.
+   - Ein „Remove“-Button ermöglicht das Entfernen der Bildreferenz.
 
 ### Exit-Kriterien
-Integration einer Screenshot-Funktion in die Extension (manuell und/oder automatisch)
-Der Screenshot wird dem selektierten Element eindeutig zugeordnet (Matching über boundingClientRect)
-Automatisches Cropping des Elementausschnitts ist möglich und liefert einen visuell korrekten Ausschnitt
-Screenshot-Preview kann im Extension-UI angezeigt werden (optional)
-Screenshot wird persistiert (z. B. in chrome.storage.local) oder direkt als Teil des API-Requests an den Proxy übergeben
-Das LLM erhält zusätzlich zum strukturierten Payload eine visuelle Referenz (z. B. Base64 oder Blob-Transfer)
+- Upload-Funktion im Extension-UI integriert (Datei auswählen)
+- Screenshot wird im Extension-Kontext verarbeitet (mindestens: Data URL; optional: Kompression/Downscaling)
+- Screenshot kann im Popup als Vorschau angezeigt und entfernt werden (optional)
+- Screenshot wird persistiert (z. B. `chrome.storage.local`) oder zumindest im Request mitgesendet
+- LLM erhält neben dem strukturierten Payload eine zusätzliche visuelle Referenz und kann diese für die Rekonstruktion nutzen
 
 ### Fehlerkriterien
-Screenshot-Erfassung nicht möglich (fehlende Berechtigungen, Tab-Kontext nicht unterstützbar)
-Falscher oder leerer Ausschnitt durch fehlerhafte Koordinaten (Scroll-Offset, Zoom, Device Pixel Ratio)
-Cropping schneidet wichtige Teile ab oder enthält zu viel Umgebung
-Performance-Probleme oder zu große Bilddaten (Payload zu groß, API-Limits)
-Screenshot entspricht nicht dem tatsächlichen UI-Zustand (Hover/Focus nicht sichtbar, Timing-Probleme)
+- Upload nicht möglich (z. B. ungültiges Dateiformat, Lesefehler)
+- Bilddaten zu groß → Performance-/Payload-Probleme (API-Limits, Request-Size, Context-Window)
+- Fehlende/defekte Preview-Darstellung im Popup
+- Bild wird nicht korrekt mit dem Request übertragen oder vom Server nicht berücksichtigt
 
 ### Fallbacks
-Fallback auf manuelle Screenshot-Erfassung, falls automatisches Cropping fehlschlägt
-Fallback auf Full-Page/Full-Viewport Screenshot ohne Cropping, falls Koordinaten unsicher sind
-Reduktion der Bildgröße durch Kompression oder Downscaling (z. B. Zielbreite/-höhe)
-Hinweis im UI, wenn Screenshot im aktuellen Kontext nicht möglich ist (z. B. interne Browser-Seiten)
-Übermittlung nur des strukturierten Payloads, falls Bilddaten zu groß oder nicht verfügbar sind
+- Übermittlung nur des strukturierten Payloads, falls keine Bilddatei vorhanden ist
+- Reduktion der Bildgröße durch Downscaling/Kompression (z. B. Zielbreite/-höhe und JPEG-Qualität)
+- Entfernen/Reset der Bildreferenz im UI, falls Upload fehlschlägt
+- Hinweis im UI, wenn Bilddaten zu groß sind oder nicht verarbeitet werden können
 
 ### Prompt Engineering
-Erweiterung des Prompts um die Information, dass eine visuelle Referenz vorliegt (Screenshot des Elementausschnitts)
-Anweisung zur Nutzung des Screenshots als Referenz für visuelle Details, die nicht zuverlässig aus CSS ableitbar sind
-Klare Definition der Prioritäten: Struktur (HTML/CSS) primär, Screenshot als visuelle Validierung und Feintuning
-Optional: Hinweis, dass Screenshot ausschließlich zur visuellen Annäherung dient (keine Textextraktion durch OCR als Voraussetzung)
-
-### Verwendete Technologien, Mechanismen, Konzeptentscheidungen
-Chrome Extensions Tabs API zur Screenshot-Erfassung (chrome.tabs.captureVisibleTab)
-Bildverarbeitung im Extension-Kontext (Cropping/Downscaling über Canvas API)
-Koordinaten- und Skalierungsabgleich (Device Pixel Ratio, Scroll-Offsets, Zoomfaktoren) zur korrekten Ausschnittberechnung
-Optional: Anzeige einer Bildvorschau im Extension-UI (z. B. als Data URL im Popup)
+- Erweiterung des Prompts um die Information, dass eine visuelle Referenz vorliegt (hochgeladener Screenshot)
+- Anweisung: Screenshot nur zur visuellen Annäherung verwenden (Form, Abstände, Farben, Schatten, Bildausschnitt)
+- Klare Priorität: Struktur (HTML/CSS) primär, Bildreferenz sekundär zur Validierung/Feintuning
+- Keine OCR-Anforderung: Screenshot dient nicht der Textextraktion, sondern nur de

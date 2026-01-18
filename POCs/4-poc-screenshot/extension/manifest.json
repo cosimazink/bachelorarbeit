@@ -1,6 +1,6 @@
 {
     "manifest_version": 3,
-    "name": "UI Extractor – POC 03 LLM Handover",
+    "name": "UI Extractor – POC 04 Screenshot",
     "version": "0.0.1",
     "description": "Basispoc: Browserextension with Selector for UI-Elements",
     "action": {
