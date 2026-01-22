@@ -11,6 +11,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const clearUploadBtn = document.getElementById("clearUpload");
   const uploadedPreview = document.getElementById("uploadedPreview");
 
+  const UPLOAD_MAX_BYTES = 3 * 1024 * 1024;
+  const JPEG_MAX_W = 768;
+  const JPEG_MAX_H = 768;
+  const JPEG_QUALITY = 0.75;
+
   function readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -29,8 +34,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function getMimeFromDataUrl(dataUrl) {
+    const m = /^data:([^;]+);base64,/.exec(dataUrl);
+    return m ? m[1].toLowerCase() : "";
+  }
+
   // Kompremierung des Screenshots
-  async function downscaleDataUrl(dataUrl, { maxW = 768, maxH = 768, quality = 0.75 } = {}) {
+  async function toCompressedJpegDataUrl(dataUrl, { maxW, maxH, quality } = {}) {
     const img = await loadImage(dataUrl);
     const w = img.naturalWidth;
     const h = img.naturalHeight;
@@ -43,28 +53,38 @@ document.addEventListener("DOMContentLoaded", () => {
     canvas.width = nw;
     canvas.height = nh;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { alpha: false });
+
+    // If source has transparency (PNG), paint white background before drawing
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, nw, nh);
+
     ctx.drawImage(img, 0, 0, nw, nh);
 
+    // Force JPEG output
     return canvas.toDataURL("image/jpeg", quality);
   }
 
   async function setUploadedScreenshot(dataUrlOrNull) {
     if (!dataUrlOrNull) {
       await chrome.storage.local.remove(["uploadedScreenshot"]);
-      uploadedPreview.style.display = "none";
-      uploadedPreview.src = "";
-      uploadInput.value = "";
+      if (uploadedPreview) {
+        uploadedPreview.style.display = "none";
+        uploadedPreview.src = "";
+      }
+      if (uploadInput) uploadInput.value = "";
       return;
     }
 
     await chrome.storage.local.set({ uploadedScreenshot: dataUrlOrNull });
-    uploadedPreview.src = dataUrlOrNull;
-    uploadedPreview.style.display = "block";
+    if (uploadedPreview) {
+      uploadedPreview.src = dataUrlOrNull;
+      uploadedPreview.style.display = "block";
+    }
   }
 
   chrome.storage.local.get("uploadedScreenshot", (res) => {
-    if (res.uploadedScreenshot) {
+    if (res.uploadedScreenshot && uploadedPreview) {
       uploadedPreview.src = res.uploadedScreenshot;
       uploadedPreview.style.display = "block";
     }
@@ -251,6 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   let lastSerialized = null;
+  let hadPrevious = false;
   setInterval(() => {
     chrome.storage.local.get("lastSelection", (result) => {
       if (!result.lastSelection) return;
@@ -279,7 +300,6 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen (POC 04).");
       }
 
-      const prompt = buildPrompt(presetEl.value, extraEl.value.trim());
       const { uploadedScreenshot } = await chrome.storage.local.get("uploadedScreenshot");
 
       const res = await fetch("http://localhost:8787/api/generate", {
@@ -321,28 +341,49 @@ document.addEventListener("DOMContentLoaded", () => {
     saveExtra();
   });
 
-  uploadInput.addEventListener("change", async () => {
+  uploadInput?.addEventListener("change", async () => {
     clearStatus();
     try {
       const file = uploadInput.files?.[0];
       if (!file) return;
 
-      if (!file.type.startsWith("image/")) {
-        throw new Error("Bitte eine Bilddatei auswählen.");
+      // Hard type check (don’t rely on accept only)
+      const type = (file.type || "").toLowerCase();
+      const isPng = type === "image/png";
+      const isJpeg = type === "image/jpeg";
+      if (!isPng && !isJpeg) {
+        throw new Error("Nur PNG oder JPEG sind erlaubt.");
       }
 
-      const raw = await readFileAsDataURL(file);
-      const optimized = await downscaleDataUrl(raw, { maxW: 768, maxH: 768, quality: 0.75 });
+      if (file.size > UPLOAD_MAX_BYTES) {
+        throw new Error(`Datei zu groß (max. ${Math.round(UPLOAD_MAX_BYTES / 1024 / 1024)} MB).`);
+      }
 
-      await setUploadedScreenshot(optimized);
-      setStatus("Screenshot hochgeladen (verkleinert).");
+      // Read -> always convert to compressed JPEG
+      const rawDataUrl = await readFileAsDataURL(file);
+
+      // Extra safety: validate the dataUrl mime
+      const mime = getMimeFromDataUrl(rawDataUrl);
+      if (mime !== "image/png" && mime !== "image/jpeg") {
+        throw new Error("Ungültige Bilddaten (nur PNG/JPEG).");
+      }
+
+      const jpegDataUrl = await toCompressedJpegDataUrl(rawDataUrl, {
+        maxW: JPEG_MAX_W,
+        maxH: JPEG_MAX_H,
+        quality: JPEG_QUALITY
+      });
+
+      await setUploadedScreenshot(jpegDataUrl);
+
+      setStatus("Screenshot gespeichert (als JPEG komprimiert).");
     } catch (e) {
-      setStatus(e?.message || "Upload fehlgeschlagen", "error");
       await setUploadedScreenshot(null);
+      setStatus(e?.message || "Upload fehlgeschlagen", "error");
     }
   });
 
-  clearUploadBtn.addEventListener("click", async () => {
+  clearUploadBtn?.addEventListener("click", async () => {
     await setUploadedScreenshot(null);
     setStatus("Upload entfernt.");
   });
