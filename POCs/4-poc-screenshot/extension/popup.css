@@ -191,7 +191,6 @@ button {
     line-height: 1.4;
     white-space: pre-wrap;
     word-wrap: break-word;
-    color: #e5e7eb;
 }
 
 .field-label{
@@ -239,7 +238,6 @@ button {
   max-height: 260px;
   overflow:auto;
   background: var(--bg-code);
-  color: #e5e7eb;
   white-space: pre-wrap;
 }
 
@@ -252,6 +250,18 @@ button {
   background: #fff;
 }
 .hidden{ display:none; }
+
+pre code {
+  display: block;
+  padding: 8px;
+  border-radius: 6px;
+  overflow: auto;
+}
+
+#payload-container pre,
+.code-block {
+  background: var(--bg-code);
+}
 
 
 /* Footer */

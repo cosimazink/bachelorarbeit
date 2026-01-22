@@ -16,6 +16,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const JPEG_MAX_H = 768;
   const JPEG_QUALITY = 0.75;
 
+  function highlightCode(codeEl, lang) {
+    if (!codeEl) return;
+
+    // ensure base class for theme
+    codeEl.classList.add("hljs");
+
+    // Sprache setzen (alte language-* entfernen)
+    if (lang) {
+      codeEl.className = codeEl.className
+        .split(/\s+/)
+        .filter((c) => !c.startsWith("language-"))
+        .join(" ")
+        .trim();
+      codeEl.classList.add(`language-${lang}`);
+      codeEl.classList.add("hljs");
+    }
+
+    // Reset: remove previous highlighting marker + markup
+    codeEl.removeAttribute("data-highlighted");
+
+    const raw = codeEl.textContent || "";
+    codeEl.textContent = raw;
+
+    if (window.hljs) {
+      window.hljs.highlightElement(codeEl);
+    }
+  }
+
   function readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -93,7 +121,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function setOutput(code) {
     outEl.textContent = code || "{ noch kein Output }";
     copyBtn.disabled = !code;
+
+    requestAnimationFrame(() => highlightCode(outEl, "html"));
   }
+
 
   function clearOutput(reason = "") {
     // optional: du kannst reason nutzen, um eine Statusmeldung zu zeigen
@@ -197,8 +228,10 @@ document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.local.get("lastSelection", (result) => {
     if (result.lastSelection) {
       preview.textContent = JSON.stringify(result.lastSelection, null, 2);
+      highlightCode(preview, "json");
     } else {
       preview.textContent = "{ noch kein Element ausgewählt }";
+      highlightCode(preview, "json");
     }
   });
 
@@ -279,6 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (serialized !== lastSerialized) {
         lastSerialized = serialized;
         preview.textContent = serialized;
+        requestAnimationFrame(() => highlightCode(preview, "json"));
 
         if (hadPrevious) {
           clearOutput("Neue Auswahl erkannt – Output zurückgesetzt.");
@@ -321,6 +355,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       const code = data.code || "";
       setOutput(code);
+      requestAnimationFrame(() => highlightCode(outEl, "html"));
       await chrome.storage.local.set({ lastGeneratedCode: code });
       setStatus("Done");
     } catch (err) {
