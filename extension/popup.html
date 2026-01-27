@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>UI Extractor</title>
+    <link rel="stylesheet" href="src/styles/combined.css" />
+    <link rel="stylesheet" href="src/styles/popup.css" />
+    <link rel="stylesheet" href="vendor/highlight/github-dark.min.css" />
+</head>
+
+<body>
+    <div class="popup-root">
+        <header class="popup-header">
+            <div class="header-icon">🧩</div>
+            <div class="header-text">
+                <h1>UI Extractor</h1>
+                <p class="header-subtitle">
+                    Wähle ein Element auf der aktuellen Seite aus, um seine Struktur zu analysieren.
+                </p>
+            </div>
+        </header>
+
+        <main class="popup-main">
+            <section class="action-section">
+                <button id="start-selection" class="btn">
+                    Element auswählen
+                </button>
+                <p class="action-hint">
+                    Klicke auf „Element auswählen“, fahre über die Website und klicke auf ein Element.
+                </p>
+            </section>
+
+            <section class="preview-section">
+                <div class="section-heading">
+                    <span class="section-title">Letzte Auswahl</span>
+                    <span class="section-badge">Payload</span>
+                </div>
+                <div id="payload-container">
+                    <pre><code id="payload-preview" class="hljs language-json">{ noch kein Element ausgewählt }</code></pre>
+                </div>
+            </section>
+            <section class="preview-section">
+                <div class="section-heading">
+                    <span class="section-title">LLM Generator</span>
+                    <span class="section-badge">GPT-5.2</span>
+                </div>
+
+                <label class="field-label" for="promptPreset">Prompt Vorlage</label>
+                <select id="promptPreset" class="field-input">
+                    <option value="vanilla_webcomponent">Webkomponente</option>
+                    <option value="snippet_html_css">Snippet (HTML+CSS)</option>
+                </select>
+
+                <label class="field-label" for="screenshotUpload">Screenshot hochladen</label>
+                <input id="screenshotUpload" class="field-input" type="file" accept="image/png,image/jpeg" />
+
+                <div class="row">
+                    <small class="action-hint">
+                        Empfohlen: PNG/JPG, wird automatisch verkleinert.
+                    </small>
+                    <button id="clearUpload" class="btn" class="ghost-btn" type="button">Remove</button>
+                </div>
+
+                <img id="uploadedPreview" alt="Uploaded screenshot preview"/>
+
+                <label class="field-label" for="promptExtra">Zusatzhinweise (optional)</label>
+                <textarea id="promptExtra" class="field-input" rows="4"
+                    placeholder="z.B. 'Hover: leichter Glow + weißer Schatten', 'keine externen Libraries', ..."></textarea>
+
+                <button id="generate" class="btn" class="primary-btn">Generate Code</button>
+
+                <div id="status" class="status hidden"></div>
+
+                <div class="output">
+                    <div class="output-head">
+                        <span class="section-title">Output</span>
+                        <button id="copy" class="btn" class="ghost-btn" disabled>Copy</button>
+                    </div>
+                    <pre class="code-block"><code id="llm-output" class="hljs language-html">{ noch kein Output }</code></pre>
+                </div>
+            </section>
+        </main>
+
+        <footer class="popup-footer">
+            <small>
+                Have fun!
+            </small>
+        </footer>
+    </div>
+
+    <script src="vendor/highlight/highlight.min.js"></script>
+    <script src="src/scripts/popup.js"></script>
+</body>
+
+</html>
