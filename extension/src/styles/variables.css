@@ -5,7 +5,7 @@
     --color-grey-light: #333333;
     --color-grey-lightest: #B3B3B3;
     --color-white: #F1F1F1;
-    --color-blue-dark: #273E63;
+    --color-blue-dark: #0476d91f;
     --color-blue-light: #0476D9;
     --color-blue-lightest: #77C0FF;
     --color-red: #DD4C4C;
@@ -13,6 +13,7 @@
     --color-pink: #E84C78;
 
     --ff-primary: 'Inter', sans-serif;
+    --ff-secondary: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --ff-icons: material-icons;
 
     --lh-tight: 100%;

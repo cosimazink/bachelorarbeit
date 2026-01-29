@@ -155,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setButtonState(isOn) {
     btn.dataset.mode = isOn ? "on" : "off";
-    btn.textContent = isOn ? "Select Mode: ON (click to stop)" : "Select Mode: OFF (click to start)";
+    btn.textContent = "ELEMENT SELEKTIEREN";
   }
 
   // UI-Statusmeldung im Popup anzeigen (Info/Fehler)
