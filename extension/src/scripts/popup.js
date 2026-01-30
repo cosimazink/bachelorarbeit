@@ -104,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (uploadInput) uploadInput.value = "";
 
       if (uploadPreviewWrap) uploadPreviewWrap.style.display = "none";
-      if (removeUploadBtn) removeUploadBtn.style.display = "none"; 
+      if (removeUploadBtn) removeUploadBtn.style.display = "none";
       return;
     }
 
@@ -188,6 +188,14 @@ document.addEventListener("DOMContentLoaded", () => {
   function setLoading(isLoading) {
     generateBtn.disabled = isLoading;
     generateBtn.textContent = isLoading ? "Generating..." : "Generate Code";
+
+    // Glow genau so lange, wie "Generating..." aktiv ist
+    setFlashState(generateBtn, isLoading);
+  }
+
+  function setFlashState(buttonEl, isOn) {
+    if (!buttonEl) return;
+    buttonEl.classList.toggle("is-active-flash", !!isOn);
   }
 
   // Prompt aus Preset + optionalen Zusatzhinweisen bauen
@@ -346,6 +354,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }, 800);
 
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName !== "local") return;
+
+    // Wenn eine neue Auswahl gespeichert wurde -> Select Mode ist faktisch vorbei
+    if (changes.lastSelection && changes.lastSelection.newValue) {
+      setButtonState(false); // setzt data-mode="off" -> Button wird wieder "normal"
+    }
+  });
+
   generateBtn.addEventListener("click", async () => {
     clearStatus();
     setLoading(true);
@@ -390,10 +407,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  let copyResetTimer = null;
+
   copyBtn.addEventListener("click", async () => {
     const text = outEl.textContent || "";
     await navigator.clipboard.writeText(text);
+
+    // Text wechseln
+    copyBtn.textContent = "Copied";
+
+    // Glow an, solange "Copied" steht
+    setFlashState(copyBtn, true);
+
+    // Optional: falls du deinen Status behalten willst
     setStatus("Copied to clipboard");
+
+    // nach kurzer Zeit zurücksetzen
+    if (copyResetTimer) clearTimeout(copyResetTimer);
+    copyResetTimer = setTimeout(() => {
+      copyBtn.textContent = "Copy";
+      setFlashState(copyBtn, false);
+    }, 2000);
   });
 
   extraEl.addEventListener("input", () => {

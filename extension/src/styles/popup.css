@@ -27,6 +27,66 @@
     gap: var(--m);
 }
 
+/* BUTTONS */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: var(--xs) var(--s);
+
+  border: 1px solid var(--color-grey-lightest);
+  border-radius: 999px;
+
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  font-family: var(--ff-secondary);
+  font-size: var(--fs-m);
+  font-weight: var(--fw-medium);
+  letter-spacing: 0.6px;
+
+  color: var(--color-grey-lightest);
+  background: transparent;
+
+  position: relative;
+
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+}
+
+.btn::before{
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 999px;
+
+  box-shadow: var(--color-white), var(--color-white);
+  opacity:0;
+
+  pointer-events: none;
+  filter: blur(2px);
+}
+
+.btn:hover{
+  font-weight: var(--fw-semi-bold);
+  color: var(--color-white);
+}
+
+.btn.is-active-flash {
+  background: var(--color-white);
+  color: var(--color-black);
+  border-color: var(--color-white);
+  box-shadow: rgba(255, 255, 255, 0.5) 0px 0px 15px 0px;
+  font-weight: var(--fw-bold);
+  border: 1px solid var(--color-white);
+}
+
+.btn.is-active-flash::before {
+  opacity: 1;
+  transform: scale(1);
+}
+
 /* Action */
 .action-section {
     display: flex;
@@ -91,7 +151,7 @@
     border-color: var(--color-white);
     box-shadow: rgba(255, 255, 255, 0.5) 0px 0px 15px 0px;
     font-weight: var(--fw-bold);
-    border: 1.5px solid var(--color-white);
+    border: 1px solid var(--color-white);
 }
 
 .select-toggle[data-mode="on"]::before {
@@ -99,9 +159,6 @@
     transform: scale(1);
 }
 
-.select-toggle[data-mode="on"]:hover {
-    border: 1.5px solid var(--color-white);
-}
 
 /* SECTIONS (Letzte Auswahl / LLM Generator) */
 .preview-section {
@@ -171,10 +228,10 @@
 
 .field-input {
     width: 100%;
-    padding: 7px var(--s);
+    padding: var(--s) var(--s);
 
     border-radius: var(--xs);
-    border: 1px solid var(--color-grey-light);
+    border: 1px solid var(--color-grey-lightest);
     background: var(--color-black);
     color: var(--color-white);
 
@@ -195,29 +252,21 @@ input[type="file"] {
     color: var(--color-grey-lightest);
 }
 
-
 .field-input:focus {
-    border-color: rgba(4, 118, 217, 0.8);
-    box-shadow: 0 0 0 3px rgba(4, 118, 217, 0.20);
+    border-color: var(--color-blue-lightest);
 }
 
 textarea.field-input {
-    resize: vertical;
-    min-height: 64px;
+    resize: none;
 }
 
-/* Remove / Copy / kleine Buttons */
-.ghost-btn {
-    padding: 6px 12px;
-    font-size: var(--fs-m);
-    border-width: 1px;
+textarea::placeholder {
+    color: var(--color-grey-lightest);
 }
 
 /* Primary Generate Button */
 .primary-btn {
     margin-top: var(--s);
-    width: auto;
-    /* wie im Screenshot: nicht full width */
     align-self: center;
 }
 
