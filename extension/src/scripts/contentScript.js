@@ -19,13 +19,21 @@
         }
     }
 
-    function setSelectionMode(next) {
+    function setSelectionMode(next, opts = {}) {
+        const { clearSelectedOnOff = true, persist = true } = opts;
+
         selectionMode = next;
+
         if (!selectionMode) {
             clearHover();
-            clearSelected();
+            if (clearSelectedOnOff) clearSelected();
+        }
+
+        if (persist) {
+            chrome.storage.local.set({ selectionMode }, () => { });
         }
     }
+
 
     function isInternalOutline(outlineValue) {
         if (!outlineValue) return false;
@@ -316,16 +324,18 @@
 
         const payload = buildElementPayload(selectedElement, { hoverStyles, focusStyles });
 
+        // pinke Linie setzen und NICHT sofort wieder entfernen
         selectedElement.classList.add("selected-outline");
 
-        console.log("Selektiertes Element-Payload:", payload);
+        chrome.storage.local.set(
+            { lastSelection: payload, selectionMode: false },
+            () => console.log("Payload gespeichert + selectionMode aus.")
+        );
 
-        chrome.storage.local.set({ lastSelection: payload }, () => {
-            console.log("Payload gespeichert.");
-        });
-
-        selectionMode = false;
+        // SelectionMode lokal aus, aber selected-outline behalten
+        setSelectionMode(false, { clearSelectedOnOff: false, persist: false });
     }
+
 
 
     // Messages from Popup

@@ -166,7 +166,20 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.set({ lastPromptExtra: extraEl.value || "" });
   }
 
-  function setButtonState(isOn) {
+  function clearPayloadPreviewUI() {
+  // UI sofort leeren
+  preview.textContent = "{ Select Mode aktiv. Fahre über die Seite und klicke auf ein Element ... }";
+  requestAnimationFrame(() => highlightCode(preview, "json"));
+
+  // Polling-state reset, damit später neue Auswahl sicher erkannt wird
+  lastSerialized = null;
+  hadPrevious = false;
+
+  // Storage wirklich leeren
+  chrome.storage.local.remove(["lastSelection"]);
+}
+
+  function setSelectButtonVisualState(isOn) {
     btn.dataset.mode = isOn ? "on" : "off";
     btn.textContent = "ELEMENT SELEKTIEREN";
   }
@@ -285,6 +298,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  chrome.storage.local.get(["selectionMode"], (res) => {
+    setSelectButtonVisualState(!!res.selectionMode);
+  });
+
   // Beim Öffnen: aktuellen State vom Content Script abfragen
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
@@ -293,47 +310,36 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.tabs.sendMessage(tab.id, { type: "GET_SELECTION_STATE" }, (res) => {
       // falls content script nicht verfügbar (z.B. chrome:// pages)
       if (chrome.runtime.lastError) {
-        setButtonState(false);
+        setSelectButtonVisualState(false);
         return;
       }
-      setButtonState(!!res?.selectionMode);
+      setSelectButtonVisualState(!!res?.selectionMode);
     });
   });
 
-  btn.addEventListener("click", () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
-      if (!tab?.id) {
-        console.error("Kein aktiver Tab gefunden.");
-        return;
+btn.addEventListener("click", () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tab = tabs[0];
+    if (!tab?.id) return;
+
+    const isOn = btn.dataset.mode === "on";
+    const nextType = isOn ? "STOP_SELECTION" : "START_SELECTION";
+
+    // Wenn wir starten: Payload sofort leeren wie früher
+    if (nextType === "START_SELECTION") {
+      clearPayloadPreviewUI();
+      clearOutput("Select Mode aktiv – Output zurückgesetzt.");
+      clearExtra("Select Mode aktiv – Zusatzhinweis zurückgesetzt.");
+      clearUploadedScreenshot("Select Mode aktiv – Upload zurückgesetzt.");
+    }
+
+    chrome.tabs.sendMessage(tab.id, { type: nextType }, () => {
+      if (chrome.runtime.lastError) {
+        chrome.storage.local.set({ selectionMode: false });
       }
-
-      const isOn = btn.dataset.mode === "on";
-      const nextType = isOn ? "STOP_SELECTION" : "START_SELECTION";
-
-      chrome.tabs.sendMessage(tab.id, { type: nextType }, async (res) => {
-        if (chrome.runtime.lastError) {
-          preview.textContent =
-            "{ Fehler: Content Script nicht erreichbar (z.B. interne Browser-Seite oder blockierter Kontext) }";
-          setButtonState(false);
-          return;
-        }
-
-        setButtonState(!!res?.selectionMode);
-
-        const turnedOn = !isOn; // weil nextType = START_SELECTION wenn isOn=false
-        if (turnedOn) {
-          clearOutput("Select Mode aktiv – Output zurückgesetzt.");
-          clearExtra("Select Mode aktiv – Zusatzhinweis zurückgesetzt.");
-          await clearUploadedScreenshot("Select Mode aktiv – Upload zurückgesetzt.");
-        }
-
-        preview.textContent = isOn
-          ? "{ Select Mode deaktiviert. }"
-          : "{ Select Mode aktiv. Fahre über die Seite und klicke auf ein Element ... }";
-      });
     });
   });
+});
 
   let lastSerialized = null;
   let hadPrevious = false;
@@ -357,9 +363,8 @@ document.addEventListener("DOMContentLoaded", () => {
   chrome.storage.onChanged.addListener((changes, areaName) => {
     if (areaName !== "local") return;
 
-    // Wenn eine neue Auswahl gespeichert wurde -> Select Mode ist faktisch vorbei
-    if (changes.lastSelection && changes.lastSelection.newValue) {
-      setButtonState(false); // setzt data-mode="off" -> Button wird wieder "normal"
+    if (changes.selectionMode) {
+      setSelectButtonVisualState(!!changes.selectionMode.newValue);
     }
   });
 
@@ -370,13 +375,17 @@ document.addEventListener("DOMContentLoaded", () => {
     copyBtn.disabled = true;
 
     try {
+      console.log("Reading Payload from storage...");
       const { lastSelection } = await chrome.storage.local.get("lastSelection");
       if (!lastSelection) {
         throw new Error("Kein Payload gefunden. Bitte erst ein Element auswählen.");
       }
 
+      console.log("Reading screenshot...");
       const { uploadedScreenshot } = await chrome.storage.local.get("uploadedScreenshot");
 
+      console.log("Sending API request...");
+      console.time("API request");
       const res = await fetch("http://localhost:8787/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -388,15 +397,22 @@ document.addEventListener("DOMContentLoaded", () => {
         })
       });
 
+      console.timeEnd("API request");
+
       if (!res.ok) {
         const msg = await res.text().catch(() => "");
+        console.error("API Error", res.status, msg);
         throw new Error(`API Error (${res.status}): ${msg || "unknown"}`);
       }
 
+      console.log("Parsing response...");
       const data = await res.json();
       const code = data.code || "";
       setOutput(code);
       requestAnimationFrame(() => highlightCode(outEl, "html"));
+      console.log("✅ Code received", {
+      length: data.code?.length
+    });
       await chrome.storage.local.set({ lastGeneratedCode: code });
       setStatus("Done");
     } catch (err) {
