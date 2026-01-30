@@ -35,7 +35,56 @@
     gap: var(--m);
 }
 
-/* NUR für den Select-Button: invertiert bei Select Mode ON */
+.action-hint {
+    margin-top: var(--xs);
+    color: var(--color-grey-lightest);
+}
+
+.upload-preview {
+    position: relative;
+    display: none;
+    margin-top: var(--s);
+}
+
+.upload-preview img {
+    display: block;
+    width: 100%;
+    border-radius: var(--xs);
+    border: 1px solid var(--color-grey-light);
+}
+
+
+.upload-remove {
+    display: none;
+    position: absolute;
+    top: var(--m);
+    right: var(--xs);
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    place-items: center;
+
+    background: var(--color-red);
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.upload-remove svg {
+    width: 14px;
+    height: 14px;
+    stroke: var(--color-white);
+    stroke-width: 2;
+    fill: none;
+}
+
+.upload-remove svg:hover {
+    stroke-width: 4;
+}
+
+
 .select-toggle[data-mode="on"] {
     background: var(--color-white);
     color: var(--color-black);
@@ -92,12 +141,10 @@
 /* Payload Container */
 #payload-container {
     border-radius: var(--xs);
-    border: 1px solid rgba(241, 241, 241, 0.10);
+    border: 1px solid var(--color-grey-light);
     background: rgba(0, 0, 0, 0.55);
     overflow: auto;
     max-height: 260px;
-
-    /* wichtig bei Flex/Overflow: verhindert “sprengen” */
     min-width: 0;
 }
 
@@ -118,17 +165,17 @@
 .field-label {
     font-size: var(--fs-m);
     font-weight: var(--fw-medium);
-    color: rgba(241, 241, 241, 0.75);
+    color: var(--color-white);
+    margin-top: var(--s);
 }
 
 .field-input {
     width: 100%;
-    margin-top: var(--xs);
-    padding: 10px 12px;
+    padding: 7px var(--s);
 
     border-radius: var(--xs);
-    border: 1px solid rgba(241, 241, 241, 0.18);
-    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid var(--color-grey-light);
+    background: var(--color-black);
     color: var(--color-white);
 
     font-family: var(--ff-primary);
@@ -136,6 +183,18 @@
 
     outline: none;
 }
+
+input[type="file"].field-input::file-selector-button {
+    background: var(--color-black);
+    color: var(--color-white);
+    border: 0;
+    cursor: pointer;
+}
+
+input[type="file"] {
+    color: var(--color-grey-lightest);
+}
+
 
 .field-input:focus {
     border-color: rgba(4, 118, 217, 0.8);
@@ -147,15 +206,6 @@ textarea.field-input {
     min-height: 64px;
 }
 
-/* Row unter Upload */
-.row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--s);
-    margin-top: var(--xs);
-}
-
 /* Remove / Copy / kleine Buttons */
 .ghost-btn {
     padding: 6px 12px;
@@ -165,7 +215,7 @@ textarea.field-input {
 
 /* Primary Generate Button */
 .primary-btn {
-    margin-top: var(--m);
+    margin-top: var(--s);
     width: auto;
     /* wie im Screenshot: nicht full width */
     align-self: center;
@@ -173,7 +223,6 @@ textarea.field-input {
 
 /* Upload Preview: per JS ein-/ausblenden */
 #uploadedPreview {
-    display: none;
     margin-top: var(--s);
     border-radius: var(--xs);
     border: 1px solid rgba(241, 241, 241, 0.12);
@@ -215,9 +264,8 @@ textarea.field-input {
     margin-top: var(--m);
     padding: 10px 12px;
     border-radius: var(--xs);
-    border: 1px solid rgba(241, 241, 241, 0.18);
     background: rgba(0, 0, 0, 0.35);
-    color: var(--color-white);
+    color: var(--color-grey-lightest);
     font-size: var(--fs-m);
 }
 

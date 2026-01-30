@@ -8,8 +8,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const outEl = document.getElementById("llm-output");
   const copyBtn = document.getElementById("copy");
   const uploadInput = document.getElementById("screenshotUpload");
-  const clearUploadBtn = document.getElementById("clearUpload");
   const uploadedPreview = document.getElementById("uploadedPreview");
+  const uploadPreviewWrap = document.getElementById("uploadPreviewWrap");
+  const removeUploadBtn = document.getElementById("removeUpload");
 
   const UPLOAD_MAX_BYTES = 3 * 1024 * 1024;
   const JPEG_MAX_W = 768;
@@ -94,29 +95,40 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function setUploadedScreenshot(dataUrlOrNull) {
-    if (!dataUrlOrNull) {
+    const hasImage = !!dataUrlOrNull;
+
+    if (!hasImage) {
       await chrome.storage.local.remove(["uploadedScreenshot"]);
-      if (uploadedPreview) {
-        uploadedPreview.style.display = "none";
-        uploadedPreview.src = "";
-      }
+
+      if (uploadedPreview) uploadedPreview.src = "";
       if (uploadInput) uploadInput.value = "";
+
+      if (uploadPreviewWrap) uploadPreviewWrap.style.display = "none";
+      if (removeUploadBtn) removeUploadBtn.style.display = "none"; 
       return;
     }
 
     await chrome.storage.local.set({ uploadedScreenshot: dataUrlOrNull });
-    if (uploadedPreview) {
-      uploadedPreview.src = dataUrlOrNull;
-      uploadedPreview.style.display = "block";
-    }
+
+    if (uploadedPreview) uploadedPreview.src = dataUrlOrNull;
+
+    if (uploadPreviewWrap) uploadPreviewWrap.style.display = "block";
+    if (removeUploadBtn) removeUploadBtn.style.display = "grid";
   }
 
+
   chrome.storage.local.get("uploadedScreenshot", (res) => {
-    if (res.uploadedScreenshot && uploadedPreview) {
-      uploadedPreview.src = res.uploadedScreenshot;
-      uploadedPreview.style.display = "block";
+    if (res.uploadedScreenshot) {
+      if (uploadedPreview) uploadedPreview.src = res.uploadedScreenshot;
+      if (uploadPreviewWrap) uploadPreviewWrap.style.display = "block";
+      if (removeUploadBtn) removeUploadBtn.style.display = "grid";
+    } else {
+      if (uploadPreviewWrap) uploadPreviewWrap.style.display = "none";
+      if (removeUploadBtn) removeUploadBtn.style.display = "none";
     }
   });
+
+
 
   function setOutput(code) {
     outEl.textContent = code || "{ noch kein Output }";
@@ -141,11 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function clearUploadedScreenshot(reason = "") {
     await chrome.storage.local.remove(["uploadedScreenshot"]);
-    if (uploadedPreview) {
-      uploadedPreview.style.display = "none";
-      uploadedPreview.src = "";
-    }
+
+    if (uploadedPreview) uploadedPreview.src = "";
     if (uploadInput) uploadInput.value = "";
+
+    if (uploadPreviewWrap) uploadPreviewWrap.style.display = "none";
+
     if (reason) setStatus(reason);
   }
 
@@ -429,13 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  clearUploadBtn?.addEventListener("click", async () => {
+  removeUploadBtn?.addEventListener("click", async () => {
     await setUploadedScreenshot(null);
     setStatus("Upload entfernt.");
   });
 
+
   function initDemoCodeButton() {
-    const btn = document.getElementById(".btn");
+    const btn = document.querySelector(".btn")
     if (!btn) return;
 
     // Sync aria-label + href-like data attribute (similar to _sync in the web component)
