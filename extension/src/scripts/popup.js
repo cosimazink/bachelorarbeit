@@ -298,23 +298,25 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  chrome.storage.local.get(["selectionMode"], (res) => {
-    setSelectButtonVisualState(!!res.selectionMode);
-  });
-
   // Beim Öffnen: aktuellen State vom Content Script abfragen
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const tab = tabs[0];
     if (!tab?.id) return;
 
     chrome.tabs.sendMessage(tab.id, { type: "GET_SELECTION_STATE" }, (res) => {
-      // falls content script nicht verfügbar (z.B. chrome:// pages)
       if (chrome.runtime.lastError) {
+        chrome.storage.local.set({ selectionMode: false });
         setSelectButtonVisualState(false);
         return;
       }
-      setSelectButtonVisualState(!!res?.selectionMode);
+
+      const isOn = !!res?.selectionMode;
+
+      chrome.storage.local.set({ selectionMode: isOn });
+
+      setSelectButtonVisualState(isOn);
     });
+
   });
 
   btn.addEventListener("click", () => {
@@ -351,6 +353,8 @@ document.addEventListener("DOMContentLoaded", () => {
         lastSerialized = serialized;
         preview.textContent = serialized;
         requestAnimationFrame(() => highlightCode(preview, "json"));
+        chrome.storage.local.set({ selectionMode: false });
+        setSelectButtonVisualState(false);
 
         if (hadPrevious) {
           clearOutput("Neue Auswahl erkannt – Output zurückgesetzt.");
@@ -499,7 +503,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   function initDemoCodeButton() {
-    const btn = document.querySelector(".btn")
     if (!btn) return;
 
     // Sync aria-label + href-like data attribute (similar to _sync in the web component)

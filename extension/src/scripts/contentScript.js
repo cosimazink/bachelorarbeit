@@ -313,6 +313,7 @@
 
         event.preventDefault();
         event.stopPropagation();
+        event.stopImmediatePropagation();
 
         clearHover();
         clearSelected();
