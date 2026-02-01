@@ -241,6 +241,17 @@
     outline: none;
 }
 
+select.field-input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-color: var(--color-black);
+  background-image: url("../assets/dropdown-arrow.svg");
+  background-repeat: no-repeat;
+  background-position: right var(--xs) center;
+}
+
 input[type="file"].field-input::file-selector-button {
     background: var(--color-black);
     color: var(--color-white);

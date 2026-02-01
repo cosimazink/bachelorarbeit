@@ -167,17 +167,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function clearPayloadPreviewUI() {
-  // UI sofort leeren
-  preview.textContent = "{ Select Mode aktiv. Fahre über die Seite und klicke auf ein Element ... }";
-  requestAnimationFrame(() => highlightCode(preview, "json"));
+    // UI sofort leeren
+    preview.textContent = "{ Select Mode aktiv. Fahre über die Seite und klicke auf ein Element ... }";
+    requestAnimationFrame(() => highlightCode(preview, "json"));
 
-  // Polling-state reset, damit später neue Auswahl sicher erkannt wird
-  lastSerialized = null;
-  hadPrevious = false;
+    // Polling-state reset, damit später neue Auswahl sicher erkannt wird
+    lastSerialized = null;
+    hadPrevious = false;
 
-  // Storage wirklich leeren
-  chrome.storage.local.remove(["lastSelection"]);
-}
+    // Storage wirklich leeren
+    chrome.storage.local.remove(["lastSelection"]);
+  }
 
   function setSelectButtonVisualState(isOn) {
     btn.dataset.mode = isOn ? "on" : "off";
@@ -317,29 +317,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-btn.addEventListener("click", () => {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    const tab = tabs[0];
-    if (!tab?.id) return;
+  btn.addEventListener("click", () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs[0];
+      if (!tab?.id) return;
 
-    const isOn = btn.dataset.mode === "on";
-    const nextType = isOn ? "STOP_SELECTION" : "START_SELECTION";
+      const isOn = btn.dataset.mode === "on";
+      const nextType = isOn ? "STOP_SELECTION" : "START_SELECTION";
 
-    // Wenn wir starten: Payload sofort leeren wie früher
-    if (nextType === "START_SELECTION") {
-      clearPayloadPreviewUI();
-      clearOutput("Select Mode aktiv – Output zurückgesetzt.");
-      clearExtra("Select Mode aktiv – Zusatzhinweis zurückgesetzt.");
-      clearUploadedScreenshot("Select Mode aktiv – Upload zurückgesetzt.");
-    }
-
-    chrome.tabs.sendMessage(tab.id, { type: nextType }, () => {
-      if (chrome.runtime.lastError) {
-        chrome.storage.local.set({ selectionMode: false });
+      // Wenn wir starten: Payload sofort leeren wie früher
+      if (nextType === "START_SELECTION") {
+        clearPayloadPreviewUI();
+        clearOutput("Select Mode aktiv – Output zurückgesetzt.");
+        clearExtra("Select Mode aktiv – Zusatzhinweis zurückgesetzt.");
+        clearUploadedScreenshot("Select Mode aktiv – Upload zurückgesetzt.");
       }
+
+      chrome.tabs.sendMessage(tab.id, { type: nextType }, () => {
+        if (chrome.runtime.lastError) {
+          chrome.storage.local.set({ selectionMode: false });
+        }
+      });
     });
   });
-});
 
   let lastSerialized = null;
   let hadPrevious = false;
@@ -411,8 +411,8 @@ btn.addEventListener("click", () => {
       setOutput(code);
       requestAnimationFrame(() => highlightCode(outEl, "html"));
       console.log("✅ Code received", {
-      length: data.code?.length
-    });
+        length: data.code?.length
+      });
       await chrome.storage.local.set({ lastGeneratedCode: code });
       setStatus("Done");
     } catch (err) {
