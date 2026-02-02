@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const JPEG_MAX_H = 768;
   const JPEG_QUALITY = 0.75;
 
+  setSelectButtonVisualState(false);
+  let hasSelection = false;
+
   function highlightCode(codeEl, lang) {
     if (!codeEl) return;
 
@@ -168,7 +171,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function clearPayloadPreviewUI() {
     // UI sofort leeren
-    preview.textContent = "{ Select Mode aktiv. Fahre über die Seite und klicke auf ein Element ... }";
+    preview.textContent = "{ noch kein Element ausgewählt }";
     requestAnimationFrame(() => highlightCode(preview, "json"));
 
     // Polling-state reset, damit später neue Auswahl sicher erkannt wird
@@ -270,9 +273,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Beim Öffnen: letzte Auswahl laden
   chrome.storage.local.get("lastSelection", (result) => {
-    if (result.lastSelection) {
+    hasSelection = !!result.lastSelection;
+
+    if (hasSelection) {
       preview.textContent = JSON.stringify(result.lastSelection, null, 2);
       highlightCode(preview, "json");
+
+      chrome.storage.local.set({ selectionMode: false });
+      setSelectButtonVisualState(false);
     } else {
       preview.textContent = "{ noch kein Element ausgewählt }";
       highlightCode(preview, "json");
@@ -310,13 +318,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      if (hasSelection) {
+        chrome.storage.local.set({ selectionMode: false });
+        setSelectButtonVisualState(false);
+        return;
+      }
+
       const isOn = !!res?.selectionMode;
-
       chrome.storage.local.set({ selectionMode: isOn });
-
       setSelectButtonVisualState(isOn);
     });
-
   });
 
   btn.addEventListener("click", () => {
