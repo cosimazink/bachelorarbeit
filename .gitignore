@@ -1,3 +1,23 @@
 # secrets
 .env
 .env.*
+
+# Node / Web
+node_modules/
+dist/
+build/
+.cache/
+.parcel-cache/
+.vite/
+.next/
+
+# Chrome Extension / App data
+uploads/
+videos/
+screenshots/
+tmp/
+*.log
+
+# OS / Editor
+.DS_Store
+.vscode/

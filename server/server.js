@@ -1,6 +1,6 @@
 import "dotenv/config";
 import express from "express";
-import OpenAI from "openai/index.mjs";
+import OpenAI from "openai";
 
 const app = express();
 app.use(express.json({ limit: "10mb" }));
